@@ -111,6 +111,8 @@ Data2|1|FALSE
      - `N`: Non-primary key.
 - **Subsequent lines**: Records, with properties separated by `|`.
 
+> **Note**: Empty lines are ignored.
+
 ---
 
 ## Example
