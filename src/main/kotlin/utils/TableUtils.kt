@@ -66,7 +66,7 @@ private val String.columns: Columns
         val (name, type, primaryKey) = it.split(':')
         require(primaryKey == "P" || primaryKey == "N")
         { "Column does not contain primary key property" }
-        Column(name.lexeme, type.asColumnType(), primaryKey.asPrimaryKey())
+        Column(name.identifier, type.asColumnType(), primaryKey.asPrimaryKey())
     }.let { Columns(it) }
 
 fun String.asColumnType(): ColumnType = when (this) {
@@ -127,5 +127,5 @@ internal infix fun Property.matches(columnType: ColumnType): Boolean = when (col
     BOOLEAN -> this is BooleanProperty
 }
 
-internal val String.lexeme
-    get() = Lexeme(this)
+internal val String.identifier
+    get() = Identifier(this)

@@ -25,7 +25,7 @@ class OpaValidator(
                 val (name, type, primaryKey) = it.split(':')
                 require(primaryKey == "P" || primaryKey == "N")
                 { "Column does not contain primary key property" }
-                Column(name.lexeme, type.asColumnType(), primaryKey.asPrimaryKey())
+                Column(name.identifier, type.asColumnType(), primaryKey.asPrimaryKey())
             }
         if (fileColumns.count { it.primaryKey } != 1) error("Table should contain exactly one primary key")
         if (fileColumns.size != columns.value.size) error("Existing types count are not matching with provided types count")
@@ -50,7 +50,7 @@ class OpaValidator(
                 val (name, type, primaryKey) = it.split(':')
                 require(primaryKey == "P" || primaryKey == "N")
                 { "Column does not contain primary key property" }
-                Column(name.lexeme, type.asColumnType(), primaryKey.asPrimaryKey())
+                Column(name.identifier, type.asColumnType(), primaryKey.asPrimaryKey())
             }
 
         val rawRecords = lines

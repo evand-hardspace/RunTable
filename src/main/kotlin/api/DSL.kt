@@ -1,7 +1,7 @@
 package database.api
 
 import database.*
-import database.utils.lexeme
+import database.utils.identifier
 
 fun table(
     builder: TableScope.() -> Unit,
@@ -232,10 +232,10 @@ internal fun boolean(boolean: Boolean): Property.BooleanProperty =
     Property.BooleanProperty(boolean)
 
 internal fun columnText(name: String, primaryKey: Boolean = false): Column =
-    Column(name.lexeme, ColumnType.STRING, primaryKey)
+    Column(name.identifier, ColumnType.STRING, primaryKey)
 
 internal fun columnInteger(name: String, primaryKey: Boolean = false): Column =
-    Column(name.lexeme, ColumnType.INT, primaryKey)
+    Column(name.identifier, ColumnType.INT, primaryKey)
 
 internal fun columnBoolean(name: String, primaryKey: Boolean = false): Column =
-    Column(name.lexeme, ColumnType.BOOLEAN, primaryKey)
+    Column(name.identifier, ColumnType.BOOLEAN, primaryKey)

@@ -20,7 +20,7 @@ value class Record internal constructor(
 value class Columns internal constructor(val value: List<Column>)
 
 data class Column(
-    val name: Lexeme,
+    val name: Identifier,
     val type: ColumnType,
     val primaryKey: Boolean,
 )
@@ -41,7 +41,7 @@ sealed interface Property {
 }
 
 @JvmInline
-value class Lexeme internal constructor(val value: String) {
+value class Identifier internal constructor(val value: String) {
     init {
         require(value.isLexemeSyntacticallyValid())
         { "Property is syntactically invalid: $value" }
