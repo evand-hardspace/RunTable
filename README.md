@@ -18,7 +18,7 @@ val table = table {
     name = "test"
     columns(primaryKey = "name") {
         "name".text
-        "age".int
+        "age".integer
         "is_student".boolean
     }
 }

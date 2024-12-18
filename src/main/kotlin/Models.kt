@@ -26,7 +26,7 @@ data class Column(
 )
 
 enum class ColumnType {
-    INT,
+    INTEGER,
     STRING,
     BOOLEAN;
 }

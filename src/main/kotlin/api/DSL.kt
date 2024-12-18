@@ -43,7 +43,7 @@ class TableScope {
 class ColumnScope internal constructor() {
     private val columns = mutableListOf<Column>()
 
-    val String.int: Unit
+    val String.integer: Unit
         get() {
             columns += columnInteger(this)
         }
@@ -186,8 +186,8 @@ class RecordScope internal constructor() {
 
 class QueryScope internal constructor() {
 
-    var property: Property? = null
-    var column: Column? = null
+    private var property: Property? = null
+    private var column: Column? = null
 
     infix fun String.eq(value: String) {
         column = columnText(this)
@@ -235,7 +235,7 @@ internal fun columnText(name: String, primaryKey: Boolean = false): Column =
     Column(name.identifier, ColumnType.STRING, primaryKey)
 
 internal fun columnInteger(name: String, primaryKey: Boolean = false): Column =
-    Column(name.identifier, ColumnType.INT, primaryKey)
+    Column(name.identifier, ColumnType.INTEGER, primaryKey)
 
 internal fun columnBoolean(name: String, primaryKey: Boolean = false): Column =
     Column(name.identifier, ColumnType.BOOLEAN, primaryKey)

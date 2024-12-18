@@ -1,5 +1,7 @@
 package database.utils
 
+import database.Literals
+
 fun String.isRecordSyntacticallyValid(): Boolean =
     matches("^(?:[a-zA-Z0-9?]+(?:\\|[a-zA-Z0-9?]+)*)?\$".toRegex())
 
@@ -11,7 +13,7 @@ fun String.isIntSyntacticallyValid(): Boolean =
     matches("^[0-9]+\$".toRegex())
 
 fun String.isStringSyntacticallyValid(): Boolean {
-    if (all { it == '?'} ) return false
+    if (all { it == Literals.SPACE_SUBSTITUTION} ) return false
     return matches("^[a-zA-Z0-9?_-]+\$".toRegex())
 }
 
@@ -21,10 +23,10 @@ fun String.isInputSyntacticallyValid(): Boolean {
 }
 
 fun String.isBooleanSyntacticallyValid(): Boolean =
-    this == "TRUE" || this == "FALSE"
+    this == Literals.TRUE || this == Literals.FALSE
 
 fun String.asBoolean() = when (this) {
-    "TRUE" -> true
-    "FALSE" -> false
+    Literals.TRUE -> true
+    Literals.FALSE -> false
     else -> throw IllegalArgumentException("Invalid boolean value: $this")
 }

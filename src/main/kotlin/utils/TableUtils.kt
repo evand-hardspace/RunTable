@@ -62,59 +62,59 @@ private val String.name: String
     get() = inBrackets()
 
 private val String.columns: Columns
-    get() = inBrackets().split('|').map {
-        val (name, type, primaryKey) = it.split(':')
-        require(primaryKey == "P" || primaryKey == "N")
+    get() = inBrackets().split(Literals.SEPARATOR).map {
+        val (name, type, primaryKey) = it.split(Literals.TYPE_SEPARATOR)
+        require(primaryKey == Literals.PRIMARY_KEY || primaryKey == Literals.NON_PRIMARY_KEY)
         { "Column does not contain primary key property" }
         Column(name.identifier, type.asColumnType(), primaryKey.asPrimaryKey())
     }.let { Columns(it) }
 
 fun String.asColumnType(): ColumnType = when (this) {
-    "INTEGER" -> INT
-    "STRING" -> STRING
-    "BOOLEAN" -> BOOLEAN
+    Literals.INTEGER -> INTEGER
+    Literals.STRING -> STRING
+    Literals.BOOLEAN -> BOOLEAN
     else -> error("Column Type is invalid")
 }
 
 fun String.asPrimaryKey(): Boolean = when (this) {
-    "P" -> true
-    "N" -> false
+    Literals.PRIMARY_KEY -> true
+    Literals.NON_PRIMARY_KEY -> false
     else -> error("Is not primary key representation")
 }
 
 private fun String.record(columns: Columns): Record = Record(
-    properties = split('|').mapIndexed { index, record ->
+    properties = split(Literals.SEPARATOR).mapIndexed { index, record ->
         record.typed(columns.value[index].type)
     }
 )
 
 private fun Columns.representation(): String = "[${
     value.map {
-        "${it.name.value}:${it.type.representation()}:${it.primaryKey.representation()}"
-    }.reduce { acc, s -> "$acc|$s" }
+        "${it.name.value}${Literals.TYPE_SEPARATOR}${it.type.representation()}${Literals.TYPE_SEPARATOR}${it.primaryKey.representation()}"
+    }.reduce { acc, s -> "$acc${Literals.SEPARATOR}$s" }
 }]\n"
 
 private fun Records.representation(): String = buildString {
     value.forEach { prop: Record ->
-        append(prop.properties.map { it.representation() }.reduce { acc, s -> "$acc|$s" })
+        append(prop.properties.map { it.representation() }.reduce { acc, s -> "$acc${Literals.SEPARATOR}$s" })
         append("\n")
     }
 }
 
-internal fun Boolean.representation() = if (this) "P" else "N"
+internal fun Boolean.representation() = if (this) Literals.PRIMARY_KEY else Literals.NON_PRIMARY_KEY
 
 internal fun ColumnType.representation(): String = when (this) {
-    INT -> "INTEGER"
-    STRING -> "STRING"
-    BOOLEAN -> "BOOLEAN"
+    INTEGER -> Literals.INTEGER
+    STRING -> Literals.STRING
+    BOOLEAN -> Literals.BOOLEAN
 }
 
 internal fun Property.representation() = when (this) {
     is IntProperty -> this.value.toString()
-    is StringProperty -> this.value.replace(" ", "?")
+    is StringProperty -> this.value.replace(" ", Literals.SPACE_SUBSTITUTION.toString())
     is BooleanProperty -> when (this.value) {
-        true -> "TRUE"
-        false -> "FALSE"
+        true -> Literals.TRUE
+        false -> Literals.FALSE
     }
 }
 
@@ -122,7 +122,7 @@ internal fun String.inBrackets(): String =
     substringAfter('[').substringBeforeLast(']')
 
 internal infix fun Property.matches(columnType: ColumnType): Boolean = when (columnType) {
-    INT -> this is IntProperty
+    INTEGER -> this is IntProperty
     STRING -> this is StringProperty
     BOOLEAN -> this is BooleanProperty
 }

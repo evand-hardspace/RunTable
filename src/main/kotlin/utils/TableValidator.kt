@@ -14,16 +14,16 @@ class OpaValidator(
      * returns true when file extension and format are valid
      */
     private fun isMetadataValid(): Boolean {
-        if (file.extension != "rtdb") error("Extension is not .rtdb")
+        if (file.extension != FILE_EXTENSION) error("Extension is not .${FILE_EXTENSION}")
         val lines = file.readText().nonEmptyLines()
         if (lines.isEmpty()) return false
         val title = lines.first()
         if (title.matches("\\[[A-Za-z]+]".toRegex()).not()) error("Title format is invalid")
 
-        val fileColumns = lines[1].inBrackets().split('|')
+        val fileColumns = lines[1].inBrackets().split(Literals.SEPARATOR)
             .map {
-                val (name, type, primaryKey) = it.split(':')
-                require(primaryKey == "P" || primaryKey == "N")
+                val (name, type, primaryKey) = it.split(Literals.TYPE_SEPARATOR)
+                require(primaryKey == Literals.PRIMARY_KEY || primaryKey == Literals.NON_PRIMARY_KEY)
                 { "Column does not contain primary key property" }
                 Column(name.identifier, type.asColumnType(), primaryKey.asPrimaryKey())
             }
@@ -43,12 +43,12 @@ class OpaValidator(
         if (isMetadataValid().not()) return false
         val lines = file.readText().nonEmptyLines()
         if (lines.size == 2) return false
-        val types = lines[1].split('|')
+        val types = lines[1].split(Literals.SEPARATOR)
 
-        val typedColumns = lines[1].inBrackets().split('|')
+        val typedColumns = lines[1].inBrackets().split(Literals.SEPARATOR)
             .map {
-                val (name, type, primaryKey) = it.split(':')
-                require(primaryKey == "P" || primaryKey == "N")
+                val (name, type, primaryKey) = it.split(Literals.TYPE_SEPARATOR)
+                require(primaryKey == Literals.PRIMARY_KEY || primaryKey == Literals.NON_PRIMARY_KEY)
                 { "Column does not contain primary key property" }
                 Column(name.identifier, type.asColumnType(), primaryKey.asPrimaryKey())
             }
@@ -58,7 +58,7 @@ class OpaValidator(
             .onEach { line ->
                 require(line.isRecordSyntacticallyValid())
                 { "Record syntax is invalid" }
-            }.map { line -> line.split('|') }
+            }.map { line -> line.split(Literals.SEPARATOR) }
 
         val typedRecords = rawRecords.map { raw ->
             raw.mapIndexed { index, r ->
@@ -82,7 +82,7 @@ class OpaValidator(
 
 internal fun String.typed(columnType: ColumnType): Property =
     when (columnType) {
-        ColumnType.INT -> {
+        ColumnType.INTEGER -> {
             require(isIntSyntacticallyValid())
             { "Integer property is syntactically invalid: $this" }
             Property.IntProperty(toInt())
@@ -91,7 +91,7 @@ internal fun String.typed(columnType: ColumnType): Property =
         ColumnType.STRING -> {
             require(isStringSyntacticallyValid())
             { "String property is syntactically invalid: $this" }
-            Property.StringProperty(replace("?", " "))
+            Property.StringProperty(replace(Literals.SPACE_SUBSTITUTION.toString(), " "))
         }
 
         ColumnType.BOOLEAN -> {
