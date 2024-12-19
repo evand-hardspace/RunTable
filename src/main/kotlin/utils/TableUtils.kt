@@ -3,12 +3,13 @@ package database.utils
 import database.*
 import database.ColumnType.*
 import database.Property.*
-import java.io.File
+import database.file.FileWriter
 
-internal fun TableRepresentation.writeToFile(file: File) {
-    file.writeText("[$name]\n")
-    file.appendText(columns.representation())
-    file.appendText(records.representation())
+context(FileWriter)
+internal fun TableRepresentation.write() {
+    write("[$name]\n")
+    append(columns.representation())
+    append(records.representation())
 }
 
 fun Columns.findIndexOf(column: Column, lazyMessage: () -> Any = {}): Int =

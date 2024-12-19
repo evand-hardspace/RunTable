@@ -1,7 +1,7 @@
 package database.api
 
 import database.*
-import database.TableHelper
+import database.file.FileWriter
 
 data class Query internal constructor(
     val column: Column,
@@ -36,12 +36,12 @@ interface UpdatableTable {
     fun firstWhere(query: Query, record: Record)
 }
 
-fun Table(
-    path: String,
+internal fun Table(
     name: String,
     columns: Columns,
+    fileWriter: FileWriter,
 ): Table = object : Table {
-    private val tableHelper = TableHelper(path, name, columns)
+    private val tableHelper = TableHelper(name, columns, fileWriter)
 
     init {
         require(tableHelper.checkPrimaryKeys())

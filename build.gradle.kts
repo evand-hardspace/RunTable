@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    testImplementation("com.google.jimfs:jimfs:1.3.0")
 }
 
 tasks.test {
@@ -18,4 +19,7 @@ tasks.test {
 }
 kotlin {
     jvmToolchain(17)
+    compilerOptions {
+        freeCompilerArgs.addAll(listOf("-Xcontext-receivers"))
+    }
 }

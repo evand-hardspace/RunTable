@@ -1,10 +1,10 @@
 package database.utils
 
 import database.*
-import java.io.File
+import database.file.FileWriter
 
-class OpaValidator(
-    private val file: File,
+internal class OpaValidator(
+    private val fileWriter: FileWriter,
     private val columns: Columns,
 ) {
 
@@ -14,8 +14,8 @@ class OpaValidator(
      * returns true when file extension and format are valid
      */
     private fun isMetadataValid(): Boolean {
-        if (file.extension != FILE_EXTENSION) error("Extension is not .${FILE_EXTENSION}")
-        val lines = file.readText().nonEmptyLines()
+        if (fileWriter.extension != FILE_EXTENSION) error("Extension is not .${FILE_EXTENSION}")
+        val lines = fileWriter.read().nonEmptyLines()
         if (lines.isEmpty()) return false
         val title = lines.first()
         if (title.matches("\\[[A-Za-z]+]".toRegex()).not()) error("Title format is invalid")
@@ -41,7 +41,7 @@ class OpaValidator(
      */
     fun isRecordsValid(): Boolean {
         if (isMetadataValid().not()) return false
-        val lines = file.readText().nonEmptyLines()
+        val lines = fileWriter.read().nonEmptyLines()
         if (lines.size == 2) return false
         val types = lines[1].split(Literals.SEPARATOR)
 

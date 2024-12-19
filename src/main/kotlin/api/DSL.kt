@@ -1,6 +1,7 @@
 package database.api
 
 import database.*
+import database.file.FileWriter
 import database.utils.identifier
 
 fun table(
@@ -36,7 +37,7 @@ class TableScope {
 
         val c = requireNotNull(columns)
         { "Columns should be defined" }
-        return Table(p, n, c)
+        return Table(n, c, FileWriter(p))
     }
 }
 
