@@ -3,7 +3,7 @@ package database
 import database.utils.*
 
 internal data class TableRepresentation(
-    val name: String,
+    val name: Identifier,
     val columns: Columns,
     val records: Records,
 )

@@ -7,7 +7,7 @@ import database.file.FileWriter
 
 context(FileWriter)
 internal fun TableRepresentation.write() {
-    write("[$name]\n")
+    write("[${name.value}]\n")
     append(columns.representation())
     append(records.representation())
 }
@@ -20,7 +20,7 @@ fun String.nonEmptyLines() = lines().filter(String::isNotEmpty)
 internal fun String.toTable(): TableRepresentation = nonEmptyLines().let { lines ->
     val columns = lines[1].columns
     TableRepresentation(
-        name = lines[0].name,
+        name = lines[0].name.identifier,
         columns = columns,
         records = lines.drop(2).map { it.record(columns) }.let { Records(it) }
     )
@@ -119,8 +119,10 @@ internal fun Property.representation() = when (this) {
     }
 }
 
-internal fun String.inBrackets(): String =
-    substringAfter('[').substringBeforeLast(']')
+internal fun String.inBrackets(): String {
+    require(first() == '[' && last() == ']') { "Value should be in brackets" }
+    return substringAfter('[').substringBeforeLast(']')
+}
 
 internal infix fun Property.matches(columnType: ColumnType): Boolean = when (columnType) {
     INTEGER -> this is IntProperty

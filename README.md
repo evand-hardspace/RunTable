@@ -1,6 +1,6 @@
 # RunTable
 
-A simple runtime-typed database implementation using a Kotlin DSL. 
+A simple runtime typed database implementation using a Kotlin DSL. 
 
 > **Note**: This implementation loads the entire `.rtdb` file into memory and is not suitable for large datasets.
 

@@ -4,9 +4,9 @@ import database.*
 import database.file.FileWriter
 import database.utils.identifier
 
-fun table(
+suspend fun table(
     builder: TableScope.() -> Unit,
-): Table = TableScope().apply(builder).toTable()
+): Result<Table> = TableScope().apply(builder).toTable()
 
 class TableScope {
     var path: String? = null
@@ -28,7 +28,7 @@ class TableScope {
             }
     }
 
-    internal fun toTable(): Table {
+    internal suspend fun toTable(): Result<Table> {
         val p = requireNotNull(path) { "Path should be defined" }
         require(p.isNotBlank()) { { "Path should be not blank" } }
 
@@ -37,7 +37,7 @@ class TableScope {
 
         val c = requireNotNull(columns)
         { "Columns should be defined" }
-        return Table(n, c, FileWriter(p))
+        return Table(n.identifier, c, FileWriter(p))
     }
 }
 
@@ -215,7 +215,6 @@ class QueryScope internal constructor() {
 
 fun query(query: QueryScope.() -> Unit): Query =
     QueryScope().apply(query).toQueryEntry()
-
 
 fun record(builder: RecordScope.() -> Unit): Record =
     RecordScope().apply(builder).toColumns()

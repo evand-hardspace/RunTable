@@ -2,6 +2,9 @@ package database.api
 
 import database.*
 import database.file.FileWriter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 data class Query internal constructor(
     val column: Column,
@@ -16,72 +19,75 @@ interface Table {
 }
 
 interface SelectableTable {
-    fun firstWhere(query: Query): Record?
-    fun allWhere(query: Query): List<Record>
-    fun all(): List<Record>
+    suspend fun firstWhere(query: Query): Result<Record>
+    suspend fun allWhere(query: Query): Result<List<Record>>
+    suspend fun all(): Result<List<Record>>
 }
 
 interface DeletableTable {
-    fun firstWhere(query: Query)
-    fun allWhere(query: Query)
-    fun all()
+    suspend fun firstWhere(query: Query): Result<Unit>
+    suspend fun allWhere(query: Query): Result<Unit>
+    suspend fun all(): Result<Unit>
 }
 
 interface InsertableTable {
-    operator fun invoke(record: Record)
-    fun all(records: Records)
+    suspend operator fun invoke(record: Record): Result<Unit>
+    suspend fun all(records: Records): Result<Unit>
 }
 
 interface UpdatableTable {
-    fun firstWhere(query: Query, record: Record)
+    suspend fun firstWhere(query: Query, record: Record): Result<Unit>
 }
 
-internal fun Table(
-    name: String,
+internal suspend fun Table(
+    name: Identifier,
     columns: Columns,
     fileWriter: FileWriter,
-): Table = object : Table {
-    private val tableHelper = TableHelper(name, columns, fileWriter)
+): Result<Table> = withContext(Dispatchers.IO) {
+    runCatching {
+        object : Table {
+            private val tableHelper = TableHelper(name, columns, fileWriter)
 
-    init {
-        require(tableHelper.checkPrimaryKeys())
-        { "Table should not contain records with duplicate primary keys" }
-    }
+            init {
+                require(tableHelper.checkPrimaryKeys())
+                { "Table should not contain records with duplicate primary keys" }
+            }
 
-    override val select: SelectableTable = object : SelectableTable {
-        override fun firstWhere(query: Query): Record? =
-            tableHelper.selectFirstWhere(query.column, query.property)
+            override val select: SelectableTable = object : SelectableTable {
+                override suspend fun firstWhere(query: Query): Result<Record> =
+                    tableHelper.selectFirstWhere(query.column, query.property)
 
-        override fun allWhere(query: Query): List<Record> =
-            tableHelper.selectAllWhere(query.column, query.property)
+                override suspend fun allWhere(query: Query): Result<List<Record>> =
+                    tableHelper.selectAllWhere(query.column, query.property)
 
-        override fun all(): List<Record> =
-            tableHelper.selectAll()
-    }
+                override suspend fun all(): Result<List<Record>> =
+                    tableHelper.selectAll()
+            }
 
 
-    override val delete: DeletableTable = object : DeletableTable {
-        override fun firstWhere(query: Query): Unit =
-            tableHelper.deleteFirstWhere(query.column, query.property)
+            override val delete: DeletableTable = object : DeletableTable {
+                override suspend fun firstWhere(query: Query): Result<Unit> =
+                    tableHelper.deleteFirstWhere(query.column, query.property)
 
-        override fun allWhere(query: Query): Unit =
-            tableHelper.deleteAllWhere(query.column, query.property)
+                override suspend fun allWhere(query: Query): Result<Unit> =
+                    tableHelper.deleteAllWhere(query.column, query.property)
 
-        override fun all(): Unit = tableHelper.deleteAll()
+                override suspend fun all(): Result<Unit> = tableHelper.deleteAll()
 
-    }
+            }
 
-    override val insert: InsertableTable = object : InsertableTable {
-        override operator fun invoke(record: Record): Unit = tableHelper.insert(record)
+            override val insert: InsertableTable = object : InsertableTable {
+                override suspend operator fun invoke(record: Record): Result<Unit> = tableHelper.insert(record)
 
-        override fun all(records: Records): Unit =
-            tableHelper.insertAll(records.value)
+                override suspend fun all(records: Records): Result<Unit> =
+                    tableHelper.insertAll(records.value)
 
-    }
+            }
 
-    override val update: UpdatableTable = object : UpdatableTable {
-        override fun firstWhere(query: Query, record: Record): Unit =
-            tableHelper.updateFirstWhere(query.column, query.property, record)
+            override val update: UpdatableTable = object : UpdatableTable {
+                override suspend fun firstWhere(query: Query, record: Record): Result<Unit> =
+                    tableHelper.updateFirstWhere(query.column, query.property, record)
+            }
+        }
     }
 }
-
