@@ -1,0 +1,6 @@
+[students]
+[name:STRING:P|age:INTEGER:N|is_student:BOOLEAN:N]
+Alex|33|TRUE
+Bob|12|TRUE
+Alice|13|FALSE
+Ivan|23|FALSE

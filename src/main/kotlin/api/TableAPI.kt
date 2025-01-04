@@ -2,13 +2,12 @@ package database.api
 
 import database.*
 import database.file.FileWriter
+import database.utils.QueryMatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 data class Query internal constructor(
-    val column: Column,
-    val property: Property,
+    val matcher: QueryMatcher
 )
 
 interface Table {
@@ -33,6 +32,7 @@ interface DeletableTable {
 interface InsertableTable {
     suspend operator fun invoke(record: Record): Result<Unit>
     suspend fun all(records: Records): Result<Unit>
+    suspend fun all(builder: RecordsScope.() -> Unit): Result<Unit>
 }
 
 interface UpdatableTable {
@@ -55,10 +55,10 @@ internal suspend fun Table(
 
             override val select: SelectableTable = object : SelectableTable {
                 override suspend fun firstWhere(query: Query): Result<Record> =
-                    tableHelper.selectFirstWhere(query.column, query.property)
+                    tableHelper.selectFirstWhere(query.matcher)
 
                 override suspend fun allWhere(query: Query): Result<List<Record>> =
-                    tableHelper.selectAllWhere(query.column, query.property)
+                    tableHelper.selectAllWhere(query.matcher)
 
                 override suspend fun all(): Result<List<Record>> =
                     tableHelper.selectAll()
@@ -67,10 +67,10 @@ internal suspend fun Table(
 
             override val delete: DeletableTable = object : DeletableTable {
                 override suspend fun firstWhere(query: Query): Result<Unit> =
-                    tableHelper.deleteFirstWhere(query.column, query.property)
+                    tableHelper.deleteFirstWhere(query.matcher)
 
                 override suspend fun allWhere(query: Query): Result<Unit> =
-                    tableHelper.deleteAllWhere(query.column, query.property)
+                    tableHelper.deleteAllWhere(query.matcher)
 
                 override suspend fun all(): Result<Unit> = tableHelper.deleteAll()
 
@@ -82,11 +82,15 @@ internal suspend fun Table(
                 override suspend fun all(records: Records): Result<Unit> =
                     tableHelper.insertAll(records.value)
 
+                override suspend fun all(builder: RecordsScope.() -> Unit): Result<Unit> =
+                    tableHelper.insertAll(RecordsScope().apply(builder).toRecords().value)
+
+
             }
 
             override val update: UpdatableTable = object : UpdatableTable {
                 override suspend fun firstWhere(query: Query, record: Record): Result<Unit> =
-                    tableHelper.updateFirstWhere(query.column, query.property, record)
+                    tableHelper.updateFirstWhere(query.matcher, record)
             }
         }
     }

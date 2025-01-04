@@ -1,9 +1,6 @@
 package database
 
-import database.utils.checkPrimaryKeyUniqueness
-import database.utils.findIndexOf
-import database.utils.matches
-import database.utils.validateInputs
+import database.utils.*
 
 internal suspend fun TableHelper.insert(record: Record) = transaction { table ->
     record.properties.validateInputs()
@@ -21,6 +18,7 @@ internal suspend fun TableHelper.insertAll(records: List<Record>) = transaction 
     records.forEach {
         it.properties.validateInputs()
         it.properties matches table.columns
+        table.records.checkPrimaryKeyUniqueness(it, table.columns)
     }
 
     val tableRecords = table.records.value.toMutableList()
@@ -32,11 +30,9 @@ internal suspend fun TableHelper.insertAll(records: List<Record>) = transaction 
     table.copy(records = Records(tableRecords))
 }
 
-internal suspend fun TableHelper.deleteFirstWhere(column: Column, value: Property) = transaction { table ->
-    val indexOfType = table.columns.findIndexOf(column) { "No such type in a table" }
-
+internal suspend fun TableHelper.deleteFirstWhere(matcher: QueryMatcher) = transaction { table ->
     val indexOfRecord = table.records.value
-        .indexOfFirst { record: Record -> record.properties[indexOfType] == value }
+        .indexOfFirst { record -> matcher.matches(record, table.columns) }
     require(indexOfRecord != -1) { "no such value in a table" }
 
     table.copy(
@@ -46,18 +42,16 @@ internal suspend fun TableHelper.deleteFirstWhere(column: Column, value: Propert
     )
 }
 
-internal suspend fun TableHelper.deleteAllWhere(column: Column, value: Property) = transaction { table ->
-    val indexOfType = table.columns.findIndexOf(column) { "No such type in a table" }
-
+internal suspend fun TableHelper.deleteAllWhere(matcher: QueryMatcher) = transaction { table ->
     val indexOfRecord = table.records.value
-        .indexOfFirst { record: Record -> record.properties[indexOfType] == value }
+        .indexOfFirst { record -> matcher.matches(record, table.columns) }
     require(indexOfRecord != -1) { "no such value in a table" }
 
     table.copy(
         records = Records(
             table.records.value.toMutableList()
                 .apply {
-                    removeAll { it.properties[indexOfType] == value }
+                    removeAll { record -> matcher.matches(record, table.columns) }
                 }
         )
     )
@@ -65,31 +59,27 @@ internal suspend fun TableHelper.deleteAllWhere(column: Column, value: Property)
 
 internal suspend fun TableHelper.deleteAll() = transaction { it.copy(records = Records(emptyList())) }
 
-internal fun TableHelper.selectFirstWhere(column: Column, value: Property): Result<Record> = provide { table ->
-    val indexOfType = table.columns.findIndexOf(column) { "No such type in a table" }
-    table.records.value.first { it.properties[indexOfType] == value }
+internal fun TableHelper.selectFirstWhere(matcher: QueryMatcher): Result<Record> = provide { table ->
+    table.records.value.first { record -> matcher.matches(record, table.columns) }
 }
 
-internal fun TableHelper.selectAllWhere(column: Column, value: Property): Result<List<Record>> = provide { table ->
-    val indexOfType = table.columns.findIndexOf(column) { "No such type in a table" }
-    table.records.value.filter { it.properties[indexOfType] == value }
+internal fun TableHelper.selectAllWhere(matcher: QueryMatcher): Result<List<Record>> = provide { table ->
+    table.records.value.filter { record -> matcher.matches(record, table.columns) }
 }
 
 internal fun TableHelper.selectAll(): Result<List<Record>> = provide { it.records.value }
 
-internal suspend fun TableHelper.updateFirstWhere(column: Column, value: Property, record: Record) =
-    transaction { table ->
-        record.properties.validateInputs()
-        record.properties matches table.columns
-        val indexOfType = table.columns.findIndexOf(column) { "No such type in a table" }
-        val indexOfRecord = table.records.value
-            .indexOfFirst { it.properties[indexOfType] == value }
-        require(indexOfRecord != -1) { "no such value in a table" }
+internal suspend fun TableHelper.updateFirstWhere(matcher: QueryMatcher, record: Record) = transaction { table ->
+    record.properties.validateInputs()
+    record.properties matches table.columns
+    val indexOfRecord = table.records.value
+        .indexOfFirst { record -> matcher.matches(record, table.columns) }
+    require(indexOfRecord != -1) { "no such value in a table" }
 
-        val records = table.records.value.toMutableList()
-        records[indexOfRecord] = Record(record.properties)
-        table.copy(records = Records(records))
-    }
+    val records = table.records.value.toMutableList()
+    records[indexOfRecord] = Record(record.properties)
+    table.copy(records = Records(records))
+}
 
 internal fun TableHelper.checkPrimaryKeys(): Boolean = provide { table ->
     val primaryKeyIndex = table.columns.value.indexOfFirst { it.primaryKey }

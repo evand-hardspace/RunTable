@@ -2,6 +2,9 @@ package database.api
 
 import database.*
 import database.file.FileWriter
+import database.utils.*
+import database.utils.ContainsMatcher
+import database.utils.EqMatcher
 import database.utils.identifier
 
 suspend fun table(
@@ -187,29 +190,55 @@ class RecordScope internal constructor() {
 
 class QueryScope internal constructor() {
 
-    private var property: Property? = null
-    private var column: Column? = null
+    private var matcher: QueryMatcher? = null
 
-    infix fun String.eq(value: String) {
-        column = columnText(this)
-        property = text(value)
-    }
+    // combined operations
+    infix fun QueryMatcher.or(matcher: QueryMatcher): QueryMatcher = OrMatcher(
+        first = this,
+        second = matcher,
+    ).apply { this@QueryScope.matcher = this }
 
-    infix fun String.eq(value: Int) {
-        column = columnInteger(this)
-        property = integer(value)
-    }
+    infix fun QueryMatcher.and(matcher: QueryMatcher): QueryMatcher = AndMatcher(
+        first = this,
+        second = matcher,
+    ).apply { this@QueryScope.matcher = this }
 
-    infix fun String.eq(value: Boolean) {
-        column = columnBoolean(this)
-        property = boolean(value)
-    }
+    // text operations
+    infix fun String.eq(value: String): QueryMatcher = EqMatcher(
+        column = columnText(this),
+        queryProperty = text(value),
+    ).apply { matcher = this }
+
+    infix fun String.contains(substring: String): QueryMatcher = ContainsMatcher(
+        column = columnText(this),
+        containedText = substring,
+    ).apply { matcher = this }
+
+    // integer operations
+    infix fun String.eq(value: Int): QueryMatcher = EqMatcher(
+        column = columnInteger(this),
+        queryProperty = integer(value),
+    ).apply { matcher = this }
+
+    infix fun String.lessThan(value: Int): QueryMatcher = LessMatcher(
+        column = columnText(this),
+        lessValue = value,
+    ).apply { matcher = this }
+
+    infix fun String.moreThan(value: Int): QueryMatcher = MoreMatcher(
+        column = columnText(this),
+        moreValue = value,
+    ).apply { matcher = this }
+
+    // boolean operations
+    infix fun String.eq(value: Boolean): QueryMatcher = EqMatcher(
+        column = columnBoolean(this),
+        queryProperty = boolean(value),
+    ).apply { matcher = this }
 
     fun toQueryEntry(): Query {
-        val col = requireNotNull(column)
-        { "Column is not specified" }
-        val prop = requireNotNull(property) { "Property is not specified" }
-        return Query(col, prop)
+        val matcher = requireNotNull(matcher) { "Matcher is not specified" }
+        return Query(matcher)
     }
 }
 
