@@ -2,7 +2,7 @@
 
 A simple runtime-typed database implementation using a Kotlin DSL.
 
-> **Note**: This implementation loads the entire `.rtdb` file into memory and is not suitable for large datasets.
+> **Note**: This project was created for practicing Kotlin DSL. It does not use B+ trees or support ACID properties. The entire .rtdb file is loaded into memory, making it unsuitable for large datasets.
 
 ---
 
