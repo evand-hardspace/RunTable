@@ -13,7 +13,7 @@ internal class TableHelper(
     tableName: Identifier,
     columns: Columns,
     private val fileWriter: FileWriter,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO.limitedParallelism(1),
 ) {
     private val validator: OpaValidator = OpaValidator(fileWriter, columns)
     private var table = TableRepresentation(tableName, columns, Records(emptyList()))
