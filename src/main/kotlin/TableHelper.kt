@@ -1,7 +1,7 @@
 package database
 
 import database.file.FileWriter
-import database.utils.OpaValidator
+import database.utils.TableValidator
 import database.utils.toTable
 import database.utils.write
 import kotlinx.coroutines.CoroutineDispatcher
@@ -15,7 +15,7 @@ internal class TableHelper(
     private val fileWriter: FileWriter,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO.limitedParallelism(1),
 ) {
-    private val validator: OpaValidator = OpaValidator(fileWriter, columns)
+    private val validator: TableValidator = TableValidator(fileWriter, columns)
     private var table = TableRepresentation(tableName, columns, Records(emptyList()))
 
     init {

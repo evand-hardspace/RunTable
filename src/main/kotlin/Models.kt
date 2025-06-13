@@ -33,11 +33,14 @@ enum class ColumnType {
 
 sealed interface Property {
 
-    data class IntProperty(val value: Int) : Property
+    @JvmInline
+    value class IntProperty(val value: Int) : Property
 
-    data class StringProperty(val value: String) : Property
+    @JvmInline
+    value class StringProperty(val value: String) : Property
 
-    data class BooleanProperty(val value: Boolean) : Property
+    @JvmInline
+    value class BooleanProperty(val value: Boolean) : Property
 }
 
 @JvmInline

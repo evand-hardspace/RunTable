@@ -3,7 +3,7 @@ package database.utils
 import database.*
 import database.file.FileWriter
 
-internal class OpaValidator(
+internal class TableValidator(
     private val fileWriter: FileWriter,
     private val columns: Columns,
 ) {
